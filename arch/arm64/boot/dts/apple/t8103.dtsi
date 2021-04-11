@@ -120,7 +120,7 @@
 			 * TODO: figure out the clocking properly, there may
 			 * be a third selectable clock.
 			 */
-			clocks = <&clk24>, <&clk24>;
+			clocks = <&clk_uart0>, <&clk_uart0>;
 			clock-names = "uart", "clk_uart_baud0";
 			status = "disabled";
 		};
@@ -130,6 +130,38 @@
 			#interrupt-cells = <3>;
 			interrupt-controller;
 			reg = <0x2 0x3b100000 0x0 0x8000>;
+		};
+
+		pmgr0: clock-controller@23b700000 {
+			compatible = "syscon", "simple-mfd";
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			reg = <0x2 0x3b700000 0x0 0x4000>;
+
+			clk_sio: clock@1c0 {
+				clock-output-names = "sio";
+				compatible = "apple,t8103-clock-gate";
+				reg = <0x1c0>;
+				#clock-cells = <0>;
+				clocks = <&clk24>;
+			};
+
+			clk_uart_p: clock@220 {
+				clock-output-names = "uart_p";
+				compatible = "apple,t8103-clock-gate";
+				reg = <0x220>;
+				#clock-cells = <0>;
+				clocks = <&clk_sio>;
+			};
+
+			clk_uart0: clock@270 {
+				clock-output-names = "uart0";
+				compatible = "apple,t8103-clock-gate";
+				reg = <0x270>;
+				#clock-cells = <0>;
+				clocks = <&clk_uart_p>;
+			};
 		};
 
 		gpio_clk: gpio_clk@23b700130 {
