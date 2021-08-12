@@ -449,7 +449,7 @@ static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 	pctl->dev = &pdev->dev;
 	dev_set_drvdata(&pdev->dev, pctl);
 
-	res = platform_irq_count(pdev); /* may return EPROBE_DEFER */
+	res = platform_irq_count(pdev);
 	if(res < 0)
 		return res;
 	if(!res) {
