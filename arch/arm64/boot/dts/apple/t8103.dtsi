@@ -131,5 +131,110 @@
 			interrupt-controller;
 			reg = <0x2 0x3b100000 0x0 0x8000>;
 		};
+
+		gpio_clk: gpio_clk@23b700130 {
+			compatible = "apple,pmgr-clk-gate";
+			#clock-cells = <0>;
+			reg = <0x2 0x3b700130 0x0 0x8>;
+			clocks = <&clk24>;
+			clock-output-names = "gpio_clk";
+		};
+
+		gpio: pinctrl@23c100000 {
+			compatible = "apple,gpio-v0";
+			reg = <0x2 0x3c100000 0x0 0x100000>;
+			pin-count = <212>;
+
+			interrupt-parent = <&aic>;
+			interrupts = <0 190 4   0 191 4   0 192 4   0 193 4   0 194 4   0 195 4   0 196 4>;
+
+			clocks = <&gpio_clk>;
+
+			gpio-controller;
+			#gpio-cells = <2>;
+
+			interrupt-controller;
+			#interrupt-cells = <2>;
+		};
+
+		nub_gpio_clk: nub_gpio_clk@23d280080 {
+			compatible = "apple,pmgr-clk-gate";
+			#clock-cells = <0>;
+			reg = <0x2 0x3d280080 0x0 0x8>;
+			clocks = <&clk24>;
+			clock-output-names = "nub_gpio_clk";
+		};
+
+		nub_gpio: pinctrl@23d1f0000 {
+			compatible = "apple,gpio-v0";
+			reg = <0x2 0x3d1f0000 0x0 0x4000>;
+			pin-count = <23>;
+			pin-base = <212>;
+			pin-prefix = "nubgpio";
+
+			interrupt-parent = <&aic>;
+			interrupts = <0 330 4   0 331 4   0 332 4   0 333 4   0 334 4   0 335 4   0 336 4>;
+
+			clocks = <&nub_gpio_clk>;
+
+			gpio-controller;
+			#gpio-cells = <2>;
+
+			interrupt-controller;
+			#interrupt-cells = <2>;
+		};
+
+		sio_busif_clk: sio_busif_clk@23b7001c0 {
+			compatible = "apple,pmgr-clk-gate";
+			#clock-cells = <0>;
+			reg = <0x2 0x3b7001c0 0x0 0x8>;
+			clocks = <&clk24>;
+			clock-output-names = "sio_busif_clk";
+		};
+
+		sio_clk: sio_clk@23b7001c8 {
+			compatible = "apple,pmgr-clk-gate";
+			#clock-cells = <0>;
+			reg = <0x2 0x3b7001c8 0x0 0x8>;
+			clocks = <&sio_busif_clk>;
+			clock-output-names = "sio_clk";
+		};
+
+		spi_p_clk: spi_p_clk@23b700218 {
+			compatible = "apple,pmgr-clk-gate";
+			#clock-cells = <0>;
+			reg = <0x2 0x3b700218 0x0 0x8>;
+			clocks = <&sio_clk>;
+			clock-output-names = "spi_p_clk";
+		};
+
+		spi3_clk: spi3_clk@23b700258 {
+			compatible = "apple,pmgr-clk-gate";
+			#clock-cells = <0>;
+			reg = <0x2 0x3b700258 0x0 0x8>;
+			clocks = <&spi_p_clk>;
+			clock-output-names = "spi3_clk";
+		};
+
+		spi3: spi@23510c000 {
+			compatible = "apple,spi-mc-m1";
+			reg = <0x2 0x3510c000 0x0 0x4000>;
+			interrupt-parent = <&aic>;
+			interrupts = <0 617 4>;
+			clocks = <&spi3_clk>;
+			cs-gpios = <&gpio 49 0>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			keyboard@0 {
+				compatible = "input,applespi-kbd-v1";
+				reg = <0>;
+				spi-max-frequency = <2000000>;
+				spien-gpios = <&gpio 195 0>;
+				irq-gpios = <&nub_gpio 13 0>;
+				interrupt-parent = <&nub_gpio>;
+				interrupts = <13 8>;
+			};
+		};
 	};
 };
