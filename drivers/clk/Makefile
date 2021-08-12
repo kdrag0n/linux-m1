@@ -17,7 +17,6 @@ endif
 
 # hardware specific clock types
 # please keep this section sorted lexicographically by file path name
-obj-$(CONFIG_ARCH_APPLE)		+= clk-apple-pmgr.o
 obj-$(CONFIG_COMMON_CLK_APPLE_CLKGATE)	+= clk-apple-clkgate.o
 obj-$(CONFIG_MACH_ASM9260)		+= clk-asm9260.o
 obj-$(CONFIG_COMMON_CLK_AXI_CLKGEN)	+= clk-axi-clkgen.o
