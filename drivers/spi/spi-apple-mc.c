@@ -72,7 +72,6 @@ struct apple_spimc {
 	unsigned int clkfreq;
 	unsigned int speed;
 	struct clk *clk;
-	struct gpio_descs *csgpio;
 
 	spinlock_t lock;
 	const unsigned char *tx_buf;
@@ -160,13 +159,10 @@ static irqreturn_t apple_spimc_irq(int irq, void *dev_id)
 
 static void apple_spimc_set_cs(struct spi_device *spid, int enable)
 {
-	struct apple_spimc *spi = spidev_to_apple_spimc(spid);
-	int cs = spid->chip_select;
-
-	if(!spi->csgpio || cs >= spi->csgpio->ndescs)
+	if (!spid->cs_gpiod)
 		return;
 
-	gpiod_direction_output(spi->csgpio->desc[cs], enable);
+	gpiod_direction_output(spid->cs_gpiod, enable);
 }
 
 static int apple_spimc_prepare(struct spi_device *spid, unsigned int speed)
@@ -334,8 +330,7 @@ static int apple_spimc_probe(struct platform_device *pdev)
 	struct apple_spimc *spi;
 	void __iomem *base;
 	struct clk *clk;
-	struct gpio_descs *csgpio = NULL;
-	int ret, ncs, irq;
+	int ret, irq;
 
 	base = devm_platform_ioremap_resource(pdev, 0);
 	if(IS_ERR(base))
@@ -346,18 +341,6 @@ static int apple_spimc_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "unable to get clock: %ld.\n", PTR_ERR(clk));
 		return PTR_ERR(clk);
 	}
-
-	ncs = gpiod_count(&pdev->dev, "cs");
-	if(ncs > 0) {
-		csgpio = devm_gpiod_get_array(&pdev->dev, "cs", 0);
-		if(IS_ERR(csgpio)) {
-			if(PTR_ERR(csgpio) != -EPROBE_DEFER)
-				dev_err(&pdev->dev, "failed to get chip select gpios: %ld\n",
-					PTR_ERR(csgpio));
-			return PTR_ERR(csgpio);
-		}
-	} else
-		ncs = 0;
 
 	ret = clk_prepare_enable(clk);
 	if(ret)
@@ -375,7 +358,7 @@ static int apple_spimc_probe(struct platform_device *pdev)
 	master->transfer_one_message = apple_spimc_transfer_one_message;
 	master->bits_per_word_mask = SPI_BPW_MASK(8);
 	master->dev.of_node = pdev->dev.of_node;
-	master->num_chipselect = ncs ? ncs : 1;
+	master->use_gpio_descriptors = true;
 
 	dev_set_drvdata(&pdev->dev, master);
 
@@ -385,10 +368,6 @@ static int apple_spimc_probe(struct platform_device *pdev)
 	spi->clk = clk;
 	spi->master = master;
 	spi->clkfreq = clk_get_rate(spi->clk);
-	spi->csgpio = csgpio;
-
-	dev_err(&pdev->dev, "Apple SPI-MC at %d MHz, %d chip select GPIO%s.\n",
-		spi->clkfreq / 1000000, ncs, ncs == 1 ? "" : "s");
 
 	spin_lock_init(&spi->lock);
 	init_completion(&spi->done);
@@ -401,7 +380,12 @@ static int apple_spimc_probe(struct platform_device *pdev)
 	if(ret < 0)
 		return ret;
 
-	return devm_spi_register_controller(&pdev->dev, master);
+	ret = devm_spi_register_controller(&pdev->dev, master);
+
+	dev_err(&pdev->dev, "Apple SPI-MC at %d MHz, %d chip select GPIO%s.\n",
+		spi->clkfreq / 1000000, master->num_chipselect, master->num_chipselect == 1 ? "" : "s");
+
+	return ret;
 }
 
 static int apple_spimc_remove(struct platform_device *pdev)
