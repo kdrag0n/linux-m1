@@ -510,7 +510,7 @@ static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 		apple_gpio_init_reg(pctl, i);
 
 		pctl->pins[i].number = i + pctl->pin_base;
-		pctl->pins[i].name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "%s%d", dev_name(pctl->dev), i);
+		pctl->pins[i].name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "PIN%u", i);
 		pctl->pins[i].drv_data = pctl;
 		pctl->pin_names[i] = pctl->pins[i].name;
 		pctl->pin_nums[i] = i;
