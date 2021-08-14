@@ -265,7 +265,6 @@
 				reg = <0>;
 				spi-max-frequency = <2000000>;
 				spien-gpios = <&gpio 195 0>;
-				irq-gpios = <&nub_gpio 13 0>;
 				interrupt-parent = <&nub_gpio>;
 				interrupts = <13 IRQ_TYPE_LEVEL_LOW>;
 			};

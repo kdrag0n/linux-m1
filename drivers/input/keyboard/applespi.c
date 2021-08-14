@@ -1890,15 +1890,6 @@ static int applespi_probe(struct spi_device *spi)
 
 	if(of_mode) {
 #ifdef CONFIG_OF
-		applespi->irqgpio = devm_gpiod_get_index(&spi->dev, "irq", 0, 0);
-		if(IS_ERR(applespi->irqgpio)) {
-			sts = PTR_ERR(applespi->irqgpio);
-			if(sts != -EPROBE_DEFER)
-				dev_err(&spi->dev, "failed to get irq gpio: %d\n", sts);
-			return sts;
-		}
-		gpiod_direction_input(applespi->irqgpio);
-
 		applespi->suspended = false;
 		applespi->gpioirq_enabled = true;
 
