@@ -8,6 +8,7 @@
  * Copyright (C) 2014 Google, Inc.
  */
 
+#include <dt-bindings/pinctrl/apple.h>
 #include <linux/clk.h>
 #include <linux/gpio/driver.h>
 #include <linux/interrupt.h>
@@ -163,11 +164,98 @@ static int apple_gpio_pinctrl_get_group_pins(struct pinctrl_dev *pctldev, unsign
 	return 0;
 }
 
+static const char *apple_gpio_pinmux_get_function_name(struct pinctrl_dev *pctldev, unsigned func);
+static int apple_gpio_pinmux_get_functions_count(struct pinctrl_dev *pctldev);
+
+static int apple_gpio_dt_subnode_to_map(struct pinctrl_dev *pctldev, struct device_node *node,
+		struct pinctrl_map **map, unsigned *reserved_maps, unsigned *num_maps)
+{
+	struct apple_gpio_pinctrl *pctl;
+	u32 pinfunc, pin, func;
+	int num_pins, i, ret = 0;
+	const char* group_name;
+	const char* function_name;
+
+	pctl = pinctrl_dev_get_drvdata(pctldev);
+
+	ret = of_property_count_u32_elems(node, "pinmux");
+	if (ret < 0) {
+		dev_err(pctl->dev, "missing pinmux property in node %pOFn.\n", node);
+		return -EINVAL;
+	}
+
+	if (ret == 0) {
+		dev_dbg(pctl->dev, "pinmux property node %pOFn has no pins.\n", node);
+		// TODO: return -EINVAL?
+		return 0;
+	}
+
+	num_pins = ret;
+
+	ret = pinctrl_utils_reserve_map(pctldev, map,
+			reserved_maps, num_maps, num_pins);
+	if (ret) {
+		return ret;
+	}
+
+	for (i = 0; i < num_pins; i++) {
+		ret = of_property_read_u32_index(node, "pinmux",
+				i, &pinfunc);
+		if (ret) {
+			return ret;
+		}
+
+		pin = APPLE_PIN(pinfunc);
+		func = APPLE_FUNC(pinfunc);
+
+		// TODO: check pin and fn combination?
+		if (func >= apple_gpio_pinmux_get_functions_count(pctldev)) {
+			ret = -EINVAL;
+			return ret;
+		}
+
+		// TODO: all pins are in their own group, so just need to look up the group by pin.
+		group_name = apple_gpio_pinctrl_get_group_name(pctldev, pin);
+
+		function_name = apple_gpio_pinmux_get_function_name(pctl->pctldev, func);
+
+		ret = pinctrl_utils_add_map_mux(pctl->pctldev, map, reserved_maps, num_maps,
+				group_name, function_name);
+		if (ret) {
+			return ret;
+		}
+	}
+
+	return 0;
+}
+
+static int apple_gpio_dt_node_to_map(struct pinctrl_dev *pctldev,
+				 struct device_node *np_config,
+				 struct pinctrl_map **map, unsigned *num_maps)
+{
+	unsigned reserved_maps;
+	int ret;
+
+	*map = NULL;
+	*num_maps = 0;
+	reserved_maps = 0;
+
+	ret = apple_gpio_dt_subnode_to_map(pctldev, np_config, map,
+				&reserved_maps, num_maps);
+
+	if (ret < 0) {
+		pinctrl_utils_free_map(pctldev, *map, *num_maps);
+		return ret;
+	}
+
+	return 0;
+}
+
 static const struct pinctrl_ops apple_gpio_pinctrl_ops = {
 	.get_groups_count = apple_gpio_pinctrl_get_groups_count,
 	.get_group_name = apple_gpio_pinctrl_get_group_name,
 	.get_group_pins = apple_gpio_pinctrl_get_group_pins,
-	.dt_node_to_map = pinconf_generic_dt_node_to_map_pin,
+	.dt_node_to_map = apple_gpio_dt_node_to_map,
 	.dt_free_map = pinctrl_utils_free_map,
 };
 
