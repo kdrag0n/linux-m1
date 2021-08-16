@@ -210,6 +210,7 @@ static const struct pinmux_ops apple_gpio_pinmux_ops = {
 	.get_function_name = apple_gpio_pinmux_get_function_name,
 	.get_function_groups = apple_gpio_pinmux_get_function_groups,
 	.set_mux = apple_gpio_pinmux_enable,
+	.strict = true,
 };
 
 /* GPIO chip functions */
