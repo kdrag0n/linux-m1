@@ -212,24 +212,6 @@ static const struct pinmux_ops apple_gpio_pinmux_ops = {
 	.set_mux = apple_gpio_pinmux_enable,
 };
 
-/* Pin configuration functions */
-
-static int apple_gpio_pinconf_get(struct pinctrl_dev *pctldev, unsigned pin, unsigned long *config)
-{
-	return -ENOTSUPP;
-}
-
-static int apple_gpio_pinconf_set(struct pinctrl_dev *pctldev, unsigned pin, unsigned long *configs, unsigned num_configs)
-{
-	return -ENOTSUPP;
-}
-
-static const struct pinconf_ops apple_gpio_pinconf_ops = {
-	.pin_config_get = apple_gpio_pinconf_get,
-	.pin_config_set = apple_gpio_pinconf_set,
-	.is_generic = true,
-};
-
 /* GPIO chip functions */
 
 static int apple_gpio_gpio_get_direction(struct gpio_chip *chip, unsigned offset)
@@ -521,7 +503,6 @@ static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 	pctl->pinctrl_desc.npins = pctl->npins;
 	pctl->pinctrl_desc.pctlops = &apple_gpio_pinctrl_ops;
 	pctl->pinctrl_desc.pmxops = &apple_gpio_pinmux_ops;
-	pctl->pinctrl_desc.confops = &apple_gpio_pinconf_ops;
 
 	pctl->pctldev = devm_pinctrl_register(&pdev->dev, &pctl->pinctrl_desc, pctl);
 	if (IS_ERR(pctl->pctldev)) {
