@@ -8,6 +8,9 @@
  * Copyright (C) 2014 Google, Inc.
  */
 
+#define USE_PINMUX_GENERIC_FN 1
+#define USE_PINCTRL_GENERIC_FN 1
+
 #include <dt-bindings/pinctrl/apple.h>
 #include <linux/clk.h>
 #include <linux/gpio/driver.h>
@@ -140,6 +143,7 @@ static void apple_gpio_init_reg(struct apple_gpio_pinctrl *pctl, unsigned pin)
 
 /* Pin controller functions */
 
+#if !USE_PINCTRL_GENERIC_FN
 static int apple_gpio_pinctrl_get_groups_count(struct pinctrl_dev *pctldev)
 {
 	struct apple_gpio_pinctrl *pctl = pinctrl_dev_get_drvdata(pctldev);
@@ -163,9 +167,12 @@ static int apple_gpio_pinctrl_get_group_pins(struct pinctrl_dev *pctldev, unsign
 
 	return 0;
 }
+#endif
 
+#if !USE_PINMUX_GENERIC_FN
 static const char *apple_gpio_pinmux_get_function_name(struct pinctrl_dev *pctldev, unsigned func);
 static int apple_gpio_pinmux_get_functions_count(struct pinctrl_dev *pctldev);
+#endif
 
 static int apple_gpio_dt_subnode_to_map(struct pinctrl_dev *pctldev, struct device_node *node,
 		struct pinctrl_map **map, unsigned *reserved_maps, unsigned *num_maps)
@@ -209,15 +216,27 @@ static int apple_gpio_dt_subnode_to_map(struct pinctrl_dev *pctldev, struct devi
 		func = APPLE_FUNC(pinfunc);
 
 		// TODO: check pin and fn combination?
+#if USE_PINMUX_GENERIC_FN
+		if (func >=pinmux_generic_get_function_count(pctldev)) {
+#else
 		if (func >= apple_gpio_pinmux_get_functions_count(pctldev)) {
+#endif
 			ret = -EINVAL;
 			return ret;
 		}
 
 		// TODO: all pins are in their own group, so just need to look up the group by pin.
+#if USE_PINCTRL_GENERIC_FN
+		group_name = pinctrl_generic_get_group_name(pctldev, pin);
+#else
 		group_name = apple_gpio_pinctrl_get_group_name(pctldev, pin);
+#endif
 
+#if USE_PINMUX_GENERIC_FN
+		function_name = pinmux_generic_get_function_name(pctl->pctldev, func);
+#else
 		function_name = apple_gpio_pinmux_get_function_name(pctl->pctldev, func);
+#endif
 
 		ret = pinctrl_utils_add_map_mux(pctl->pctldev, map, reserved_maps, num_maps,
 				group_name, function_name);
@@ -252,15 +271,22 @@ static int apple_gpio_dt_node_to_map(struct pinctrl_dev *pctldev,
 }
 
 static const struct pinctrl_ops apple_gpio_pinctrl_ops = {
+#if USE_PINCTRL_GENERIC_FN
+	.get_groups_count = pinctrl_generic_get_group_count,
+	.get_group_name = pinctrl_generic_get_group_name,
+	.get_group_pins = pinctrl_generic_get_group_pins,
+#else
 	.get_groups_count = apple_gpio_pinctrl_get_groups_count,
 	.get_group_name = apple_gpio_pinctrl_get_group_name,
 	.get_group_pins = apple_gpio_pinctrl_get_group_pins,
+#endif
 	.dt_node_to_map = apple_gpio_dt_node_to_map,
 	.dt_free_map = pinctrl_utils_free_map,
 };
 
 /* Pin multiplexer functions */
 
+#if !USE_PINMUX_GENERIC_FN
 static int apple_gpio_pinmux_get_functions_count(struct pinctrl_dev *pctldev)
 {
 	return 2;
@@ -279,6 +305,7 @@ static int apple_gpio_pinmux_get_function_groups(struct pinctrl_dev *pctldev, un
 	*num_groups = pctl->npins;
 	return 0;
 }
+#endif
 
 static int apple_gpio_pinmux_enable(struct pinctrl_dev *pctldev, unsigned func, unsigned group)
 {
@@ -294,9 +321,15 @@ static int apple_gpio_pinmux_enable(struct pinctrl_dev *pctldev, unsigned func, 
 }
 
 static const struct pinmux_ops apple_gpio_pinmux_ops = {
+#if USE_PINMUX_GENERIC_FN
+	.get_functions_count = pinmux_generic_get_function_count,
+	.get_function_name = pinmux_generic_get_function_name,
+	.get_function_groups = pinmux_generic_get_function_groups,
+#else
 	.get_functions_count = apple_gpio_pinmux_get_functions_count,
 	.get_function_name = apple_gpio_pinmux_get_function_name,
 	.get_function_groups = apple_gpio_pinmux_get_function_groups,
+#endif
 	.set_mux = apple_gpio_pinmux_enable,
 	.strict = true,
 };
@@ -598,6 +631,33 @@ static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "Failed to register pinctrl device.\n");
 		return PTR_ERR(pctl->pctldev);
 	}
+
+#if USE_PINCTRL_GENERIC_FN
+	for (i = 0; i < pctl->npins; i++) {
+		res = pinctrl_generic_add_group(pctl->pctldev, pctl->pins[i].name,
+						pctl->pin_nums + i, 1, pctl);
+		if (res < 0) {
+			dev_err(pctl->dev, "Failed to register group.");
+			return res;
+		}
+	}
+#endif
+
+#if USE_PINMUX_GENERIC_FN
+	res = pinmux_generic_add_function(pctl->pctldev, "gpio", pctl->pin_names, pctl->npins, pctl);
+
+	if (res < 0) {
+		dev_err(pctl->dev, "Failed to register function.");
+		return res;
+	}
+
+	res = pinmux_generic_add_function(pctl->pctldev, "periph", pctl->pin_names, pctl->npins, pctl);
+
+	if (res < 0) {
+		dev_err(pctl->dev, "Failed to register function.");
+		return res;
+	}
+#endif
 
 #if 0
 	writel(0, pctl->base + REG_LOCK);
