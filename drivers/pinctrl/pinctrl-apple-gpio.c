@@ -510,7 +510,9 @@ static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 		return PTR_ERR(pctl->pctldev);
 	}
 
+#if 0
 	writel(0, pctl->base + REG_LOCK);
+#endif
 
 	return apple_gpio_gpio_register(pctl);
 }
