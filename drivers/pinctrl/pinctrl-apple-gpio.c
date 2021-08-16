@@ -461,7 +461,7 @@ static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 	if(!pctl->pin_cfgs)
 		return -ENOMEM;
 	pctl->irqs = devm_kzalloc(&pdev->dev, sizeof(pctl->irqs[0]) * pctl->nirqgrps, GFP_KERNEL);
-	if(!pctl->pins)
+	if(!pctl->irqs)
 		return -ENOMEM;
 
 	for(i=0; i<pctl->nirqgrps; i++) {
