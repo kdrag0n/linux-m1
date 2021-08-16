@@ -448,19 +448,19 @@ static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 	pctl->npins = pinspec.args[2];
 	pctl->pin_base = pinspec.args[1];
 
-	pctl->pins = devm_kzalloc(&pdev->dev, sizeof(pctl->pins[0]) * pctl->npins, GFP_KERNEL);
+	pctl->pins = devm_kmalloc_array(&pdev->dev, pctl->npins, sizeof(pctl->pins[0]), GFP_KERNEL);
 	if(!pctl->pins)
 		return -ENOMEM;
-	pctl->pin_names = devm_kzalloc(&pdev->dev, sizeof(pctl->pin_names[0]) * pctl->npins, GFP_KERNEL);
+	pctl->pin_names = devm_kmalloc_array(&pdev->dev, pctl->npins, sizeof(pctl->pin_names[0]), GFP_KERNEL);
 	if(!pctl->pin_names)
 		return -ENOMEM;
-	pctl->pin_nums = devm_kzalloc(&pdev->dev, sizeof(pctl->pin_nums[0]) * pctl->npins, GFP_KERNEL);
+	pctl->pin_nums = devm_kmalloc_array(&pdev->dev, pctl->npins, sizeof(pctl->pin_nums[0]), GFP_KERNEL);
 	if(!pctl->pin_nums)
 		return -ENOMEM;
-	pctl->pin_cfgs = devm_kzalloc(&pdev->dev, sizeof(pctl->pin_cfgs[0]) * pctl->npins, GFP_KERNEL);
+	pctl->pin_cfgs = devm_kmalloc_array(&pdev->dev, pctl->npins, sizeof(pctl->pin_cfgs[0]), GFP_KERNEL);
 	if(!pctl->pin_cfgs)
 		return -ENOMEM;
-	pctl->irqs = devm_kzalloc(&pdev->dev, sizeof(pctl->irqs[0]) * pctl->nirqgrps, GFP_KERNEL);
+	pctl->irqs = devm_kmalloc_array(&pdev->dev, pctl->nirqgrps, sizeof(pctl->irqs[0]), GFP_KERNEL);
 	if(!pctl->irqs)
 		return -ENOMEM;
 
