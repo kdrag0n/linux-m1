@@ -100,22 +100,25 @@ static void apple_gpio_refresh_reg(struct apple_gpio_pinctrl *pctl, unsigned pin
 {
 	struct apple_gpio_pincfg *pincfg = &pctl->pin_cfgs[pin];
 
-	if(pincfg->stat & PINCFG_STAT_PERIPH) {
-		apple_gpio_set_reg(pctl, pin, REG_GPIOx_IRQ_MASK | REG_GPIOx_DATA, REG_GPIOx_PERIPH | REG_GPIOx_CFG_DONE | (pincfg->stat & PINCFG_STAT_OUTVAL));
-		return;
+	int stat = pincfg->stat;
+	int outval = (stat & PINCFG_STAT_OUTVAL);
+
+	int clear = REG_GPIOx_IRQ_MASK | REG_GPIOx_DATA;
+	int set = REG_GPIOx_CFG_DONE | outval;
+
+	if (stat & PINCFG_STAT_PERIPH) {
+		set |= REG_GPIOx_PERIPH;
+	} else {
+		clear |= REG_GPIOx_PERIPH;
+		if (stat & PINCFG_STAT_OUTEN)
+			set |= REG_GPIOx_IRQ_OUT;
+		else if (stat & PINCFG_STAT_IRQEN)
+			set |= pincfg->irqtype;
+		else
+			set |= REG_GPIOx_IRQ_OFF;
 	}
 
-	if(pincfg->stat & PINCFG_STAT_OUTEN) {
-		apple_gpio_set_reg(pctl, pin, REG_GPIOx_IRQ_MASK | REG_GPIOx_DATA | REG_GPIOx_PERIPH, REG_GPIOx_CFG_DONE | REG_GPIOx_IRQ_OUT | (pincfg->stat & PINCFG_STAT_OUTVAL));
-		return;
-	}
-
-	if(pincfg->stat & PINCFG_STAT_IRQEN) {
-		apple_gpio_set_reg(pctl, pin, REG_GPIOx_IRQ_MASK | REG_GPIOx_DATA | REG_GPIOx_PERIPH, REG_GPIOx_CFG_DONE | pincfg->irqtype | (pincfg->stat & PINCFG_STAT_OUTVAL));
-		return;
-	}
-
-	apple_gpio_set_reg(pctl, pin, REG_GPIOx_IRQ_MASK | REG_GPIOx_DATA | REG_GPIOx_PERIPH, REG_GPIOx_CFG_DONE | REG_GPIOx_IRQ_OFF | (pincfg->stat & PINCFG_STAT_OUTVAL));
+	apple_gpio_set_reg(pctl, pin, clear, set);
 }
 
 static uint32_t apple_gpio_get_reg(struct apple_gpio_pinctrl *pctl, unsigned pin)
