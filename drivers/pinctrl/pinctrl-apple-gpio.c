@@ -379,13 +379,17 @@ static int apple_gpio_gpio_direction_output(struct gpio_chip *chip, unsigned off
 {
 	struct apple_gpio_pinctrl *pctl = gpiochip_get_data(chip);
 
-	if(value) {
-		pctl->pin_cfgs[offset].stat &= ~PINCFG_STAT_PERIPH;
-		pctl->pin_cfgs[offset].stat |= PINCFG_STAT_OUTEN | PINCFG_STAT_OUTVAL;
-	} else {
-		pctl->pin_cfgs[offset].stat &= ~(PINCFG_STAT_OUTVAL | PINCFG_STAT_PERIPH);
-		pctl->pin_cfgs[offset].stat |= PINCFG_STAT_OUTEN;
-	}
+	int clear = PINCFG_STAT_PERIPH;
+	int set = PINCFG_STAT_OUTEN;
+
+	if (value)
+		set |= PINCFG_STAT_OUTVAL;
+	else
+		clear |= PINCFG_STAT_OUTVAL;
+
+	pctl->pin_cfgs[offset].stat &= ~clear;
+	pctl->pin_cfgs[offset].stat |= set;
+
 	apple_gpio_refresh_reg(pctl, offset);
 	return 0;
 }
