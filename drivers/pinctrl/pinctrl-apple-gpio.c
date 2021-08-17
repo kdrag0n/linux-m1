@@ -465,8 +465,16 @@ static void apple_gpio_gpio_irq_handler(struct irq_desc *desc)
 	struct gpio_chip *gc = irq_desc_get_handler_data(desc);
 	struct apple_gpio_pinctrl *pctl = gpiochip_get_data(gc);
 	struct irq_chip *chip = irq_desc_get_chip(desc);
-	unsigned irqgrp = 0, pinh, pinl;
+	unsigned irqgrp, pinh, pinl;
 	unsigned long pending;
+	unsigned int parent = irq_desc_get_irq(desc);
+
+	for (irqgrp = 0; irqgrp < pctl->nirqgrps; ++irqgrp) {
+		if (parent == pctl->irqs[irqgrp])
+			break;
+	}
+
+	WARN_ON(irqgrp == pctl->nirqgrps);
 
 	chained_irq_enter(chip, desc);
 	for(pinh=0; pinh<pctl->npins; pinh+=32) {
