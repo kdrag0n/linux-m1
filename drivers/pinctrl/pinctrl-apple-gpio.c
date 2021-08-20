@@ -400,7 +400,7 @@ static int apple_gpio_gpio_direction_output(struct gpio_chip *chip, unsigned off
 static void apple_gpio_gpio_irq_ack(struct irq_data *data)
 {
 	struct apple_gpio_pinctrl *pctl = gpiochip_get_data(irq_data_get_irq_chip_data(data));
-	unsigned irqgrp = (apple_gpio_get_reg(pctl, data->hwirq) & REG_GPIOx_GRP_MASK) >> REG_GPIOx_GRP_SHIFT;
+	unsigned irqgrp = FIELD_GET(REG_GPIOx_GRP_MASK, apple_gpio_get_reg(pctl, data->hwirq));
 
 	writel(1u << (data->hwirq & 31), pctl->base + REG_IRQ(irqgrp, data->hwirq));
 }
