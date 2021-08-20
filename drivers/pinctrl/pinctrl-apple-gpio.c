@@ -343,7 +343,8 @@ static int apple_gpio_gpio_get_direction(struct gpio_chip *chip, unsigned offset
 {
 	struct apple_gpio_pinctrl *pctl = gpiochip_get_data(chip);
 
-	return !(pctl->pin_cfgs[offset].stat & PINCFG_STAT_OUTEN);
+	return !(pctl->pin_cfgs[offset].stat & PINCFG_STAT_OUTEN) ?
+			GPIO_LINE_DIRECTION_IN : GPIO_LINE_DIRECTION_OUT;
 }
 
 static int apple_gpio_gpio_get(struct gpio_chip *chip, unsigned offset)
