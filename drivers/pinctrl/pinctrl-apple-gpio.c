@@ -540,7 +540,7 @@ static int apple_gpio_gpio_register(struct apple_gpio_pinctrl *pctl)
 	girq->default_type = IRQ_TYPE_NONE;
 	girq->handler = handle_level_irq;
 
-	ret = gpiochip_add_data(&pctl->gpio_chip, pctl);
+	ret = devm_gpiochip_add_data(pctl->dev, &pctl->gpio_chip, pctl);
 	if(ret < 0) {
 		dev_err(pctl->dev, "Failed to add GPIO chip (%d).\n", ret);
 		return ret;
