@@ -15,22 +15,15 @@
 #include <linux/clk.h>
 #include <linux/gpio/driver.h>
 #include <linux/interrupt.h>
-#include <linux/io.h>
 #include <linux/irq.h>
 #include <linux/of.h>
 #include <linux/of_irq.h>
-#include <linux/pinctrl/pinconf.h>
-#include <linux/pinctrl/pinconf-generic.h>
 #include <linux/pinctrl/pinctrl.h>
 #include <linux/pinctrl/pinmux.h>
 #include <linux/platform_device.h>
-#include <linux/slab.h>
-#include <linux/spinlock.h>
 
 #include "pinctrl-utils.h"
 #include "core.h"
-#include "devicetree.h"
-#include "pinconf.h"
 #include "pinmux.h"
 
 struct apple_gpio_pincfg {
