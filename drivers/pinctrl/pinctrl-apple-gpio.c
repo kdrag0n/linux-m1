@@ -49,7 +49,6 @@ struct apple_gpio_pinctrl {
 
 	void __iomem *base;
 	unsigned int nirqgrps;
-	int *irqs;
 
 	struct pinctrl_desc pinctrl_desc;
 	struct gpio_chip gpio_chip;
@@ -471,7 +470,7 @@ static void apple_gpio_gpio_irq_handler(struct irq_desc *desc)
 	unsigned int parent = irq_desc_get_irq(desc);
 
 	for (irqgrp = 0; irqgrp < pctl->nirqgrps; ++irqgrp) {
-		if (parent == pctl->irqs[irqgrp])
+		if (parent == gc->irq.parents[irqgrp])
 			break;
 	}
 
@@ -492,8 +491,7 @@ static int apple_gpio_gpio_register(struct apple_gpio_pinctrl *pctl)
 {
 	struct device_node *node = pctl->dev->of_node;
 	struct gpio_irq_chip *girq;
-	unsigned int grp;
-	int ret = 0;
+	int i, ret = 0;
 
 	if(!of_find_property(node, "gpio-controller", NULL)) {
 		dev_err(pctl->dev, "Apple GPIO must have 'gpio-controller' property.\n");
@@ -524,12 +522,21 @@ static int apple_gpio_gpio_register(struct apple_gpio_pinctrl *pctl)
 	girq->chip = &pctl->irq_chip;
 	girq->parent_handler = apple_gpio_gpio_irq_handler;
 	girq->num_parents = pctl->nirqgrps;
-	girq->parents = devm_kcalloc(pctl->dev, pctl->nirqgrps, sizeof(*girq->parents), GFP_KERNEL);
-	if(!girq->parents)
+
+	girq->parents = devm_kmalloc_array(pctl->dev, pctl->nirqgrps, sizeof(girq->parents[0]), GFP_KERNEL);
+	if (!girq->parents)
 		return -ENOMEM;
 
-	for(grp=0; grp<pctl->nirqgrps; grp++)
-		girq->parents[grp] = pctl->irqs[grp];
+	for(i = 0; i < pctl->nirqgrps; i++) {
+		ret = platform_get_irq(to_platform_device(pctl->dev), i);
+		if(ret < 0) {
+			if(ret != -EPROBE_DEFER)
+				dev_err(pctl->dev, "Failed to map IRQ %d (%d).\n", i, ret);
+			return ret;
+		}
+		girq->parents[i] = ret;
+	}
+
 	girq->default_type = IRQ_TYPE_NONE;
 	girq->handler = handle_level_irq;
 
@@ -591,19 +598,6 @@ static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 	pctl->pin_cfgs = devm_kmalloc_array(&pdev->dev, pctl->npins, sizeof(pctl->pin_cfgs[0]), GFP_KERNEL);
 	if(!pctl->pin_cfgs)
 		return -ENOMEM;
-	pctl->irqs = devm_kmalloc_array(&pdev->dev, pctl->nirqgrps, sizeof(pctl->irqs[0]), GFP_KERNEL);
-	if(!pctl->irqs)
-		return -ENOMEM;
-
-	for(i=0; i<pctl->nirqgrps; i++) {
-		res = platform_get_irq(pdev, i);
-		if(res < 0) {
-			if(res != -EPROBE_DEFER)
-				dev_err(&pdev->dev, "Failed to map IRQ %d (%d).\n", i, res);
-			return res;
-		}
-		pctl->irqs[i] = res;
-	}
 
 	pctl->base = devm_platform_ioremap_resource(pdev, 0);
 	if(IS_ERR(pctl->base))
