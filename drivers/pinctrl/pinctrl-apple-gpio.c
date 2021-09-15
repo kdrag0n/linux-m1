@@ -40,7 +40,6 @@ struct apple_gpio_pinctrl {
 	struct device *dev;
 	struct pinctrl_dev *pctldev;
 
-	unsigned int pin_base;
 	unsigned int npins;
 	struct pinctrl_pin_desc *pins;
 	struct apple_gpio_pincfg *pin_cfgs;
@@ -560,7 +559,7 @@ static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 	struct clk *clk;
 	struct of_phandle_args pinspec;
 	int res;
-	unsigned i;
+	unsigned pin_base, i;
 
 	pctl = devm_kzalloc(&pdev->dev, sizeof(*pctl), GFP_KERNEL);
 	if(!pctl)
@@ -584,7 +583,7 @@ static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 	}
 
 	pctl->npins = pinspec.args[2];
-	pctl->pin_base = pinspec.args[1];
+	pin_base = pinspec.args[1];
 
 	pctl->pins = devm_kmalloc_array(&pdev->dev, pctl->npins, sizeof(pctl->pins[0]), GFP_KERNEL);
 	if(!pctl->pins)
@@ -616,7 +615,7 @@ static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 	for(i=0; i<pctl->npins; i++) {
 		apple_gpio_init_reg(pctl, i);
 
-		pctl->pins[i].number = i + pctl->pin_base;
+		pctl->pins[i].number = i + pin_base;
 		pctl->pins[i].name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "PIN%u", i);
 		pctl->pins[i].drv_data = pctl;
 		pctl->pin_names[i] = pctl->pins[i].name;
