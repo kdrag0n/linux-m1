@@ -44,7 +44,6 @@ struct apple_gpio_pinctrl {
 	struct pinctrl_dev *pctldev;
 
 	unsigned int pin_base;
-	const char *pin_prefix;
 	unsigned int npins;
 	struct pinctrl_pin_desc *pins;
 	struct apple_gpio_pincfg *pin_cfgs;
@@ -388,7 +387,7 @@ static int apple_gpio_gpio_register(struct apple_gpio_pinctrl *pctl)
 		return -ENODEV;
 	}
 
-	pctl->gpio_chip.label = pctl->pin_prefix;
+	pctl->gpio_chip.label = dev_name(pctl->dev);
 	pctl->gpio_chip.request = gpiochip_generic_request;
 	pctl->gpio_chip.free = gpiochip_generic_free;
 	pctl->gpio_chip.get_direction = apple_gpio_gpio_get_direction;
@@ -401,7 +400,7 @@ static int apple_gpio_gpio_register(struct apple_gpio_pinctrl *pctl)
 	pctl->gpio_chip.parent = pctl->dev;
 	pctl->gpio_chip.of_node = node;
 
-	pctl->irq_chip.name = pctl->pin_prefix;
+	pctl->irq_chip.name = dev_name(pctl->dev);
 	pctl->irq_chip.irq_startup = apple_gpio_gpio_irq_startup;
 	pctl->irq_chip.irq_ack = apple_gpio_gpio_irq_ack;
 	pctl->irq_chip.irq_mask = apple_gpio_gpio_irq_mask;
@@ -467,9 +466,6 @@ static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 	pctl->npins = pinspec.args[2];
 	pctl->pin_base = pinspec.args[1];
 
-	if(of_property_read_string(pdev->dev.of_node, "pin-prefix", &pctl->pin_prefix))
-		pctl->pin_prefix = "gpio";
-
 	pctl->pins = devm_kzalloc(&pdev->dev, sizeof(pctl->pins[0]) * pctl->npins, GFP_KERNEL);
 	if(!pctl->pins)
 		return -ENOMEM;
@@ -514,13 +510,13 @@ static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 		apple_gpio_init_reg(pctl, i);
 
 		pctl->pins[i].number = i + pctl->pin_base;
-		pctl->pins[i].name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "%s%d", pctl->pin_prefix, i);
+		pctl->pins[i].name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "%s%d", dev_name(pctl->dev), i);
 		pctl->pins[i].drv_data = pctl;
 		pctl->pin_names[i] = pctl->pins[i].name;
 		pctl->pin_nums[i] = i;
 	}
 
-	pctl->pinctrl_desc.name = pctl->pin_prefix;
+	pctl->pinctrl_desc.name = dev_name(pctl->dev);
 	pctl->pinctrl_desc.pins = pctl->pins;
 	pctl->pinctrl_desc.npins = pctl->npins;
 	pctl->pinctrl_desc.pctlops = &apple_gpio_pinctrl_ops;
