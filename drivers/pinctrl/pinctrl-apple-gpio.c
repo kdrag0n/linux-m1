@@ -1,6 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0-only
 /*
  * Apple SoC pinctrl+GPIO+external IRQ driver
  *
+ * Copyright (C) 2021 The Asahi Linux Contributors
  * Copyright (C) 2020 Corellium LLC
  *
  * Based on: pinctrl-pistachio.c
