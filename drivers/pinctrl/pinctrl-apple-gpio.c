@@ -427,26 +427,19 @@ static int apple_gpio_gpio_register(struct apple_gpio_pinctrl *pctl)
 		return ret;
 	}
 
-	ret = gpiochip_add_pin_range(&pctl->gpio_chip, dev_name(pctl->dev), 0, 0, pctl->npins);
-	if(ret < 0) {
-		dev_err(pctl->dev, "Failed to add GPIO range (%d).\n", ret);
-		gpiochip_remove(&pctl->gpio_chip);
-		return ret;
-	}
-
 	return 0;
 }
 
 static const struct of_device_id apple_gpio_pinctrl_of_match[] = {
-	{ .compatible = "apple,gpio-v0", },
+	{ .compatible = "apple,t8103-pinctrl", },
 	{ },
 };
 
 static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 {
 	struct apple_gpio_pinctrl *pctl;
-	struct resource *rsrc;
 	struct clk *clk;
+	struct of_phandle_args pinspec;
 	int res;
 	unsigned i;
 
@@ -465,13 +458,15 @@ static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 	}
 	pctl->nirqgrps = res;
 
-	of_property_read_u32(pdev->dev.of_node, "pin-count", &pctl->npins);
-	if(pctl->npins < 0) {
-		dev_err(&pdev->dev, "Apple GPIO must have 'pin-count' property.\n");
+	if (of_parse_phandle_with_fixed_args(pdev->dev.of_node, "gpio-ranges",
+			3, 0, &pinspec)) {
+		dev_err(&pdev->dev, "gpio-ranges property not found\n");
 		return -EINVAL;
 	}
 
-	of_property_read_u32(pdev->dev.of_node, "pin-base", &pctl->pin_base);
+	pctl->npins = pinspec.args[2];
+	pctl->pin_base = pinspec.args[1];
+
 	if(of_property_read_string(pdev->dev.of_node, "pin-prefix", &pctl->pin_prefix))
 		pctl->pin_prefix = "gpio";
 
@@ -501,8 +496,7 @@ static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 		pctl->irqs[i] = res;
 	}
 
-	rsrc = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	pctl->base = devm_ioremap_resource(&pdev->dev, rsrc);
+	pctl->base = devm_platform_ioremap_resource(pdev, 0);
 	if(IS_ERR(pctl->base))
 		return PTR_ERR(pctl->base);
 
@@ -519,7 +513,7 @@ static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 	for(i=0; i<pctl->npins; i++) {
 		apple_gpio_init_reg(pctl, i);
 
-		pctl->pins[i].number = i;
+		pctl->pins[i].number = i + pctl->pin_base;
 		pctl->pins[i].name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "%s%d", pctl->pin_prefix, i);
 		pctl->pins[i].drv_data = pctl;
 		pctl->pin_names[i] = pctl->pins[i].name;
