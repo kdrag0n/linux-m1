@@ -231,8 +231,6 @@
 			compatible = "apple,t8103-pinctrl", "apple,pinctrl";
 			reg = <0x2 0x3d1f0000 0x0 0x4000>;
 
-			pin-prefix = "nubgpio";
-
 			interrupt-parent = <&aic>;
 			interrupts = <AIC_IRQ 330 IRQ_TYPE_LEVEL_HIGH
 			              AIC_IRQ 331 IRQ_TYPE_LEVEL_HIGH
