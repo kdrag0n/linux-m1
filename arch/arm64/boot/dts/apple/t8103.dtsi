@@ -205,9 +205,8 @@
 		};
 
 		gpio: pinctrl@23c100000 {
-			compatible = "apple,gpio-v0";
+			compatible = "apple,t8103-pinctrl", "apple,pinctrl";
 			reg = <0x2 0x3c100000 0x0 0x100000>;
-			pin-count = <212>;
 
 			interrupt-parent = <&aic>;
 			interrupts = <AIC_IRQ 190 IRQ_TYPE_LEVEL_HIGH
@@ -222,16 +221,16 @@
 
 			gpio-controller;
 			#gpio-cells = <2>;
+			gpio-ranges = <&gpio 0 0 212>;
 
 			interrupt-controller;
 			#interrupt-cells = <2>;
 		};
 
 		nub_gpio: pinctrl@23d1f0000 {
-			compatible = "apple,gpio-v0";
+			compatible = "apple,t8103-pinctrl", "apple,pinctrl";
 			reg = <0x2 0x3d1f0000 0x0 0x4000>;
-			pin-count = <23>;
-			pin-base = <212>;
+
 			pin-prefix = "nubgpio";
 
 			interrupt-parent = <&aic>;
@@ -247,6 +246,7 @@
 
 			gpio-controller;
 			#gpio-cells = <2>;
+			gpio-ranges = <&nub_gpio 0 212 23>;
 
 			interrupt-controller;
 			#interrupt-cells = <2>;
