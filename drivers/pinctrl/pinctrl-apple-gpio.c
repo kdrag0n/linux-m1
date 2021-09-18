@@ -512,34 +512,43 @@ static int apple_gpio_gpio_register(struct apple_gpio_pinctrl *pctl)
 	pctl->gpio_chip.parent = pctl->dev;
 	pctl->gpio_chip.of_node = node;
 
-	pctl->irq_chip.name = dev_name(pctl->dev);
-	pctl->irq_chip.irq_startup = apple_gpio_gpio_irq_startup;
-	pctl->irq_chip.irq_ack = apple_gpio_gpio_irq_ack;
-	pctl->irq_chip.irq_mask = apple_gpio_gpio_irq_mask;
-	pctl->irq_chip.irq_unmask = apple_gpio_gpio_irq_unmask;
-	pctl->irq_chip.irq_set_type = apple_gpio_gpio_irq_set_type;
-
-	girq = &pctl->gpio_chip.irq;
-	girq->chip = &pctl->irq_chip;
-	girq->parent_handler = apple_gpio_gpio_irq_handler;
-	girq->num_parents = pctl->nirqgrps;
-
-	girq->parents = devm_kmalloc_array(pctl->dev, pctl->nirqgrps, sizeof(girq->parents[0]), GFP_KERNEL);
-	if (!girq->parents)
-		return -ENOMEM;
-
-	for(i = 0; i < pctl->nirqgrps; i++) {
-		ret = platform_get_irq(to_platform_device(pctl->dev), i);
-		if(ret < 0) {
-			if(ret != -EPROBE_DEFER)
-				dev_err(pctl->dev, "Failed to map IRQ %d (%d).\n", i, ret);
+	if (of_find_property(node, "interrupt-controller", NULL)) {
+		ret = platform_irq_count(to_platform_device(pctl->dev));
+		if(ret < 0)
 			return ret;
-		}
-		girq->parents[i] = ret;
-	}
 
-	girq->default_type = IRQ_TYPE_NONE;
-	girq->handler = handle_level_irq;
+		pctl->nirqgrps = ret;
+
+		pctl->irq_chip.name = dev_name(pctl->dev);
+		pctl->irq_chip.irq_startup = apple_gpio_gpio_irq_startup;
+		pctl->irq_chip.irq_ack = apple_gpio_gpio_irq_ack;
+		pctl->irq_chip.irq_mask = apple_gpio_gpio_irq_mask;
+		pctl->irq_chip.irq_unmask = apple_gpio_gpio_irq_unmask;
+		pctl->irq_chip.irq_set_type = apple_gpio_gpio_irq_set_type;
+
+		girq = &pctl->gpio_chip.irq;
+		girq->chip = &pctl->irq_chip;
+		girq->parent_handler = apple_gpio_gpio_irq_handler;
+		girq->num_parents = pctl->nirqgrps;
+
+		girq->parents = devm_kmalloc_array(pctl->dev, pctl->nirqgrps,
+			sizeof(girq->parents[0]), GFP_KERNEL);
+		if (!girq->parents)
+			return -ENOMEM;
+
+		for(i = 0; i < pctl->nirqgrps; i++) {
+			ret = platform_get_irq(to_platform_device(pctl->dev), i);
+			if(ret < 0) {
+				if(ret != -EPROBE_DEFER)
+					dev_err(pctl->dev, "Failed to map IRQ %d (%d).\n", i, ret);
+				return ret;
+			}
+			girq->parents[i] = ret;
+		}
+
+		girq->default_type = IRQ_TYPE_NONE;
+		girq->handler = handle_level_irq;
+	}
 
 	ret = devm_gpiochip_add_data(pctl->dev, &pctl->gpio_chip, pctl);
 	if(ret < 0) {
@@ -568,15 +577,6 @@ static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	pctl->dev = &pdev->dev;
 	dev_set_drvdata(&pdev->dev, pctl);
-
-	res = platform_irq_count(pdev);
-	if(res < 0)
-		return res;
-	if(!res) {
-		dev_err(&pdev->dev, "Apple GPIO must have at least one IRQ.\n");
-		return -EINVAL;
-	}
-	pctl->nirqgrps = res;
 
 	if (of_parse_phandle_with_fixed_args(pdev->dev.of_node, "gpio-ranges",
 			3, 0, &pinspec)) {
