@@ -119,6 +119,7 @@
 			interrupts = <AIC_IRQ 605 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&clkref>, <&clkref>, <&clkref>;
 			clock-names = "uart", "clk_uart_baud0", "clk_uart_baud1";
+			power-domains = <&ps_uart0>;
 			status = "disabled";
 		};
 
@@ -130,6 +131,7 @@
 			interrupts = <AIC_IRQ 607 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&clkref>, <&clkref>, <&clkref>;
 			clock-names = "uart", "clk_uart_baud0", "clk_uart_baud1";
+			power-domains = <&ps_uart2>;
 			status = "disabled";
 		};
 
@@ -138,6 +140,61 @@
 			#interrupt-cells = <3>;
 			interrupt-controller;
 			reg = <0x2 0x3b100000 0x0 0x8000>;
+		};
+
+		pmgr0_ps: power-controller@23b700000 {
+			compatible = "syscon", "simple-mfd";
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			reg = <0x2 0x3b700000 0x0 0x14000>;
+
+			ps_sio: power-controller@1c0 {
+				domain-output-names = "sio";
+				compatible = "apple,t8103-pmgr-pstate", "apple,pmgr-pstate";
+				reg = <0x1c0>;
+				#power-domain-cells = <0>;
+			};
+
+			ps_uart_p: power-controller@220 {
+				domain-output-names = "uart_p";
+				compatible = "apple,t8103-pmgr-pstate", "apple,pmgr-pstate";
+				reg = <0x220>;
+				#power-domain-cells = <0>;
+				power-domains = <&ps_sio>;
+			};
+
+			ps_uart0: power-controller@270 {
+				domain-output-names = "uart0";
+				compatible = "apple,t8103-pmgr-pstate", "apple,pmgr-pstate";
+				reg = <0x270>;
+				#power-domain-cells = <0>;
+				power-domains = <&ps_uart_p>;
+			};
+
+			ps_uart1: power-controller@278 {
+				domain-output-names = "uart1";
+				compatible = "apple,t8103-pmgr-pstate", "apple,pmgr-pstate";
+				reg = <0x278>;
+				#power-domain-cells = <0>;
+				power-domains = <&ps_uart_p>;
+			};
+
+			ps_uart2: power-controller@280 {
+				domain-output-names = "uart2";
+				compatible = "apple,t8103-pmgr-pstate", "apple,pmgr-pstate";
+				reg = <0x280>;
+				#power-domain-cells = <0>;
+				power-domains = <&ps_uart_p>;
+			};
+
+			ps_uart3: power-controller@288 {
+				domain-output-names = "uart3";
+				compatible = "apple,t8103-pmgr-pstate", "apple,pmgr-pstate";
+				reg = <0x288>;
+				#power-domain-cells = <0>;
+				power-domains = <&ps_uart_p>;
+			};
 		};
 
 		dwc3_0_dart_0: iommu@382f00000 {
@@ -194,5 +251,5 @@
 			compatible = "apple,reboot-v0";
 			reg = <0x2 0x3d2b0000 0x0 0x4000>;
 		};
-	};
+        };
 };
