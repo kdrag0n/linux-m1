@@ -2846,9 +2846,9 @@ static struct s3c24xx_serial_drv_data s5l_serial_drv_data = {
 		.tx_fifomask	= S3C2410_UFSTAT_TXMASK,
 		.tx_fifoshift	= S3C2410_UFSTAT_TXSHIFT,
 		.def_clk_sel	= S3C2410_UCON_CLKSEL0,
-		.num_clks	= 1,
-		.clksel_mask	= 0,
-		.clksel_shift	= 0,
+		.num_clks	= 2,
+		.clksel_mask	= S3C2410_UCON_CLKMASK,
+		.clksel_shift	= S3C2410_UCON_CLKSHIFT,
 	},
 	.def_cfg = &(struct s3c2410_uartcfg) {
 		.ucon		= APPLE_S5L_UCON_DEFAULT,
