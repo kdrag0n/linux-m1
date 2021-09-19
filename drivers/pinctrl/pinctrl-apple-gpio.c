@@ -170,14 +170,22 @@ static const char *apple_gpio_pinmux_get_function_name(struct pinctrl_dev *pctld
 static int apple_gpio_pinmux_get_functions_count(struct pinctrl_dev *pctldev);
 #endif
 
-static int apple_gpio_dt_subnode_to_map(struct pinctrl_dev *pctldev, struct device_node *node,
-		struct pinctrl_map **map, unsigned *reserved_maps, unsigned *num_maps)
+static int apple_gpio_dt_node_to_map(struct pinctrl_dev *pctldev,
+				 struct device_node *np_config,
+				 struct pinctrl_map **map, unsigned *num_maps)
 {
+	unsigned reserved_maps;
 	struct apple_gpio_pinctrl *pctl;
 	u32 pinfunc, pin, func;
-	int num_pins, i, ret = 0;
+	int num_pins, i;
 	const char* group_name;
 	const char* function_name;
+	struct device_node *node = np_config;
+	int ret = 0;
+
+	*map = NULL;
+	*num_maps = 0;
+	reserved_maps = 0;
 
 	pctl = pinctrl_dev_get_drvdata(pctldev);
 
@@ -196,7 +204,7 @@ static int apple_gpio_dt_subnode_to_map(struct pinctrl_dev *pctldev, struct devi
 	num_pins = ret;
 
 	ret = pinctrl_utils_reserve_map(pctldev, map,
-			reserved_maps, num_maps, num_pins);
+			&reserved_maps, num_maps, num_pins);
 	if (ret) {
 		return ret;
 	}
@@ -205,7 +213,7 @@ static int apple_gpio_dt_subnode_to_map(struct pinctrl_dev *pctldev, struct devi
 		ret = of_property_read_u32_index(node, "pinmux",
 				i, &pinfunc);
 		if (ret) {
-			return ret;
+			goto free_map;
 		}
 
 		pin = APPLE_PIN(pinfunc);
@@ -218,7 +226,7 @@ static int apple_gpio_dt_subnode_to_map(struct pinctrl_dev *pctldev, struct devi
 		if (func >= apple_gpio_pinmux_get_functions_count(pctldev)) {
 #endif
 			ret = -EINVAL;
-			return ret;
+			goto free_map;
 		}
 
 		// TODO: all pins are in their own group, so just need to look up the group by pin.
@@ -234,30 +242,14 @@ static int apple_gpio_dt_subnode_to_map(struct pinctrl_dev *pctldev, struct devi
 		function_name = apple_gpio_pinmux_get_function_name(pctl->pctldev, func);
 #endif
 
-		ret = pinctrl_utils_add_map_mux(pctl->pctldev, map, reserved_maps, num_maps,
+		ret = pinctrl_utils_add_map_mux(pctl->pctldev, map, &reserved_maps, num_maps,
 				group_name, function_name);
 		if (ret) {
-			return ret;
+			goto free_map;
 		}
 	}
 
-	return 0;
-}
-
-static int apple_gpio_dt_node_to_map(struct pinctrl_dev *pctldev,
-				 struct device_node *np_config,
-				 struct pinctrl_map **map, unsigned *num_maps)
-{
-	unsigned reserved_maps;
-	int ret;
-
-	*map = NULL;
-	*num_maps = 0;
-	reserved_maps = 0;
-
-	ret = apple_gpio_dt_subnode_to_map(pctldev, np_config, map,
-				&reserved_maps, num_maps);
-
+free_map:
 	if (ret < 0) {
 		pinctrl_utils_free_map(pctldev, *map, *num_maps);
 		return ret;
