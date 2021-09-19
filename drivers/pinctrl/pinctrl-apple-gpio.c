@@ -71,7 +71,6 @@ struct apple_gpio_pinctrl {
 #define  REG_GPIOx_GRP_MASK	GENMASK(18, 16)
 #define	REG_GPIOx_GRP_SHIFT	16
 #define REG_IRQ(g,x)		(0x800 + 0x40 * (g) + 4 * ((x) >> 5))
-#define REG_LOCK		0xC50
 
 static void apple_gpio_set_reg(struct apple_gpio_pinctrl *pctl, unsigned pin, uint32_t clr, uint32_t set)
 {
@@ -653,10 +652,6 @@ static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 		dev_err(pctl->dev, "Failed to register function.");
 		return res;
 	}
-#endif
-
-#if 0
-	writel(0, pctl->base + REG_LOCK);
 #endif
 
 	return apple_gpio_gpio_register(pctl);
