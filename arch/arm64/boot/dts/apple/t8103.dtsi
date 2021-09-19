@@ -117,12 +117,8 @@
 			reg-io-width = <4>;
 			interrupt-parent = <&aic>;
 			interrupts = <AIC_IRQ 605 IRQ_TYPE_LEVEL_HIGH>;
-			/*
-			 * TODO: figure out the clocking properly, there may
-			 * be a third selectable clock.
-			 */
-			clocks = <&clkref>, <&clkref>;
-			clock-names = "uart", "clk_uart_baud0";
+			clocks = <&clkref>, <&clkref>, <&clkref>;
+			clock-names = "uart", "clk_uart_baud0", "clk_uart_baud1";
 			status = "disabled";
 		};
 
