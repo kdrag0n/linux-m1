@@ -60,13 +60,13 @@ struct apple_gpio_pinctrl {
 #define REG_GPIO(x)		(4 * (x))
 #define  REG_GPIOx_DATA		BIT(0)
 #define  REG_GPIOx_IRQ_MASK	GENMASK(3, 1)
-#define	REG_GPIOx_IRQ_OUT	BIT(1)
-#define	REG_GPIOx_IRQ_HI	GENMASK(2, 2)
-#define	REG_GPIOx_IRQ_LO	GENMASK(2, 1)
-#define	REG_GPIOx_IRQ_UP	GENMASK(3, 3)
-#define	REG_GPIOx_IRQ_DN	BIT(1) | BIT(3)
-#define	REG_GPIOx_IRQ_ANY	GENMASK(3, 2)
-#define	REG_GPIOx_IRQ_OFF	GENMASK(3, 1)
+#define	REG_GPIOx_OUTPUT	2
+#define	REG_GPIOx_IRQ_HI	4
+#define	REG_GPIOx_IRQ_LO	6
+#define	REG_GPIOx_IRQ_UP	8
+#define	REG_GPIOx_IRQ_DN	10
+#define	REG_GPIOx_IRQ_ANY	12
+#define	REG_GPIOx_IRQ_OFF	14
 #define  REG_GPIOx_PERIPH	BIT(5)
 #define  REG_GPIOx_CFG_DONE	BIT(9)
 #define  REG_GPIOx_GRP_MASK	GENMASK(18, 16)
