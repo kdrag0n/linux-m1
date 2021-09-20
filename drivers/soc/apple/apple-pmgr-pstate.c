@@ -74,6 +74,7 @@ static int apple_pmgr_ps_probe(struct platform_device *pdev)
 	struct device_node *node = dev->of_node;
 	struct apple_pmgr_ps *ps;
 	struct regmap *regmap;
+	struct of_phandle_iterator it;
 	int ret;
 	const char *name;
 
@@ -99,6 +100,9 @@ static int apple_pmgr_ps_probe(struct platform_device *pdev)
 		return ret;
 	}
 
+	if (of_property_read_bool(node, "always-on"))
+		ps->genpd.flags |= GENPD_FLAG_ALWAYS_ON;
+
 	ps->genpd.name = name;
 	ps->genpd.power_on = apple_pmgr_ps_power_on;
 	ps->genpd.power_off = apple_pmgr_ps_power_off;
@@ -115,7 +119,32 @@ static int apple_pmgr_ps_probe(struct platform_device *pdev)
 		return ret;
 	}
 
+	of_for_each_phandle(&it, ret, node, "power-domains", "#power-domain-cells", -1) {
+		struct of_phandle_args parent, child;
+
+		parent.np = it.node;
+		parent.args_count = of_phandle_iterator_args(&it, parent.args, MAX_PHANDLE_ARGS);
+		child.np = node;
+		child.args_count = 0;
+		ret = of_genpd_add_subdomain(&parent, &child);
+		of_node_put(parent.np);
+
+		if (ret == -EPROBE_DEFER) {
+			goto err_remove;
+		} else if (ret < 0) {
+			dev_err(dev, "failed to add to parent domain: %d (%s -> %s)\n",
+				ret, it.node->name, node->name);
+			goto err_remove;
+		}
+	}
+
+	pm_genpd_remove_device(dev);
+
 	return 0;
+err_remove:
+	of_genpd_del_provider(node);
+	pm_genpd_remove(&ps->genpd);
+	return ret;
 }
 
 static const struct of_device_id apple_pmgr_ps_of_match[] = {
