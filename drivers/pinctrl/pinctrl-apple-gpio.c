@@ -18,6 +18,7 @@
 #include <linux/gpio/driver.h>
 #include <linux/interrupt.h>
 #include <linux/irq.h>
+#include <linux/module.h>
 #include <linux/of.h>
 #include <linux/of_irq.h>
 #include <linux/pinctrl/pinctrl.h>
@@ -666,8 +667,9 @@ static struct platform_driver apple_gpio_pinctrl_driver = {
 	.probe = apple_gpio_pinctrl_probe,
 };
 
-static int __init apple_gpio_pinctrl_register(void)
-{
-	return platform_driver_register(&apple_gpio_pinctrl_driver);
-}
-arch_initcall(apple_gpio_pinctrl_register);
+module_platform_driver(apple_gpio_pinctrl_driver);
+
+MODULE_DESCRIPTION("Apple pinctrl/GPIO driver");
+MODULE_AUTHOR("Stan Skowronek <stan@corellium.com>");
+MODULE_AUTHOR("Joey Gouly <joey.gouly@arm.com>");
+MODULE_LICENSE("GPL v2");
