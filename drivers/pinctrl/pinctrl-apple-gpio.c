@@ -81,11 +81,8 @@ static void apple_gpio_set_reg(struct apple_gpio_pinctrl *pctl, unsigned pin, ui
 	prev = readl(ppin);
 	cfg = (prev & ~clr) | set;
 
-	if(cfg & REG_GPIOx_CFG_DONE) {
-		if(!(prev & REG_GPIOx_CFG_DONE))
-			writel(cfg & ~REG_GPIOx_CFG_DONE, ppin);
-	} else
-		writel(prev & ~REG_GPIOx_CFG_DONE, ppin);
+	if(!(prev & REG_GPIOx_CFG_DONE))
+		writel(cfg & ~REG_GPIOx_CFG_DONE, ppin);
 	writel(cfg, ppin);
 }
 
