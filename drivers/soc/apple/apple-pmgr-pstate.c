@@ -127,13 +127,14 @@ static int apple_pmgr_ps_probe(struct platform_device *pdev)
 		child.np = node;
 		child.args_count = 0;
 		ret = of_genpd_add_subdomain(&parent, &child);
-		of_node_put(parent.np);
 
 		if (ret == -EPROBE_DEFER) {
+			of_node_put(parent.np);
 			goto err_remove;
 		} else if (ret < 0) {
 			dev_err(dev, "failed to add to parent domain: %d (%s -> %s)\n",
 				ret, it.node->name, node->name);
+			of_node_put(parent.np);
 			goto err_remove;
 		}
 	}
