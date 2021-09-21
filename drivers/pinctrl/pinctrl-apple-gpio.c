@@ -187,15 +187,9 @@ static int apple_gpio_dt_node_to_map(struct pinctrl_dev *pctldev,
 	pctl = pinctrl_dev_get_drvdata(pctldev);
 
 	ret = of_property_count_u32_elems(node, "pinmux");
-	if (ret < 0) {
-		dev_err(pctl->dev, "missing pinmux property in node %pOFn.\n", node);
+	if (ret <= 0) {
+		dev_err(pctl->dev, "missing or empty pinmux property in node %pOFn.\n", node);
 		return -EINVAL;
-	}
-
-	if (ret == 0) {
-		dev_dbg(pctl->dev, "pinmux property node %pOFn has no pins.\n", node);
-		// TODO: return -EINVAL?
-		return 0;
 	}
 
 	num_pins = ret;
