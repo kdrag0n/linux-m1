@@ -209,7 +209,6 @@ static int apple_gpio_dt_node_to_map(struct pinctrl_dev *pctldev,
 		pin = APPLE_PIN(pinfunc);
 		func = APPLE_FUNC(pinfunc);
 
-		// TODO: check pin and fn combination?
 #if USE_PINMUX_GENERIC_FN
 		if (func >=pinmux_generic_get_function_count(pctldev)) {
 #else
@@ -219,7 +218,6 @@ static int apple_gpio_dt_node_to_map(struct pinctrl_dev *pctldev,
 			goto free_map;
 		}
 
-		// TODO: all pins are in their own group, so just need to look up the group by pin.
 #if USE_PINCTRL_GENERIC_FN
 		group_name = pinctrl_generic_get_group_name(pctldev, pin);
 #else
