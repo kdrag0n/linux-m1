@@ -547,6 +547,7 @@ static const struct of_device_id apple_gpio_pinctrl_of_match[] = {
 static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 {
 	struct apple_gpio_pinctrl *pctl;
+	struct clk *clk;
 	struct of_phandle_args pinspec;
 	int res;
 	unsigned pin_base, i;
@@ -582,6 +583,16 @@ static int apple_gpio_pinctrl_probe(struct platform_device *pdev)
 	pctl->base = devm_platform_ioremap_resource(pdev, 0);
 	if(IS_ERR(pctl->base))
 		return PTR_ERR(pctl->base);
+
+	clk = devm_clk_get(&pdev->dev, NULL);
+	if(IS_ERR(clk)) {
+		dev_err(&pdev->dev, "unable to get clock: %ld.\n", PTR_ERR(clk));
+		return PTR_ERR(clk);
+	}
+
+	res = clk_prepare_enable(clk);
+	if(res)
+		return res;
 
 	for(i=0; i<pctl->npins; i++) {
 		apple_gpio_init_reg(pctl, i);
