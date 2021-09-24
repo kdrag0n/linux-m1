@@ -224,7 +224,7 @@
 				compatible = "apple,t8103-pmgr-pstate", "apple,pmgr-pstate";
 				reg = <0x418>;
 				#power-domain-cells = <0>;
-				power-domains = <&ps_ans2>, <&ps_apcie>;
+				power-domains = <&ps_apcie>;
 			};
 		};
 
