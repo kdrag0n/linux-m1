@@ -13,7 +13,7 @@
 
 / {
 	compatible = "apple,j274", "apple,t8103", "apple,arm-platform";
-	model = "Apple Mac mini (M1, 2020)";
+	model = "Apple MacBook Air (M1, 2020)";
 
 	aliases {
 		serial0 = &serial0;
