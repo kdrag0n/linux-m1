@@ -88,6 +88,7 @@ allOf:
         compatible:
           contains:
             enum:
+              - apple,s5l-uart
               - samsung,s3c2410-uart
               - samsung,s5pv210-uart
     then:
@@ -108,7 +109,6 @@ allOf:
         compatible:
           contains:
             enum:
-              - apple,s5l-uart
               - samsung,exynos4210-uart
     then:
       properties:
