@@ -211,7 +211,6 @@
 				power-domains = <&ps_uart_p>;
 			};
 
-			
 			ps_apcie: power-controller@348 {
 				compatible = "apple,t8103-pmgr-pwrstate", "apple,pmgr-pwrstate";
 				reg = <0x348>;
@@ -227,6 +226,7 @@
 				#power-domain-cells = <0>;
 				#reset-cells = <0>;
 				apple,domain-name = "ans2";
+				power-domains = <&ps_apcie_st>;
 			};
 
 			ps_apcie_st: power-controller@418 {
