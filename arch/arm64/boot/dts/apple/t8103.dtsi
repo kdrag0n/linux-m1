@@ -60,6 +60,7 @@
 			cpu-release-addr = <0 0>; /* To be filled by loader */
 			clocks = <&clk_ecluster>;
 			operating-points-v2 = <&ecluster_opp>;
+			capacity-dmips-mhz = <714>;
 		};
 
 		cpu_e1: cpu@1 {
@@ -70,6 +71,7 @@
 			cpu-release-addr = <0 0>; /* To be filled by loader */
 			clocks = <&clk_ecluster>;
 			operating-points-v2 = <&ecluster_opp>;
+			capacity-dmips-mhz = <714>;
 		};
 
 		cpu_e2: cpu@2 {
@@ -80,6 +82,7 @@
 			cpu-release-addr = <0 0>; /* To be filled by loader */
 			clocks = <&clk_ecluster>;
 			operating-points-v2 = <&ecluster_opp>;
+			capacity-dmips-mhz = <714>;
 		};
 
 		cpu_e3: cpu@3 {
@@ -90,6 +93,7 @@
 			cpu-release-addr = <0 0>; /* To be filled by loader */
 			clocks = <&clk_ecluster>;
 			operating-points-v2 = <&ecluster_opp>;
+			capacity-dmips-mhz = <714>;
 		};
 
 		cpu_p0: cpu@10100 {
@@ -100,6 +104,7 @@
 			cpu-release-addr = <0 0>; /* To be filled by loader */
 			clocks = <&clk_pcluster>;
 			operating-points-v2 = <&pcluster_opp>;
+			capacity-dmips-mhz = <1024>;
 		};
 
 		cpu_p1: cpu@10101 {
@@ -110,6 +115,7 @@
 			cpu-release-addr = <0 0>; /* To be filled by loader */
 			clocks = <&clk_pcluster>;
 			operating-points-v2 = <&pcluster_opp>;
+			capacity-dmips-mhz = <1024>;
 		};
 
 		cpu_p2: cpu@10102 {
@@ -120,6 +126,7 @@
 			cpu-release-addr = <0 0>; /* To be filled by loader */
 			clocks = <&clk_pcluster>;
 			operating-points-v2 = <&pcluster_opp>;
+			capacity-dmips-mhz = <1024>;
 		};
 
 		cpu_p3: cpu@10103 {
@@ -130,6 +137,7 @@
 			cpu-release-addr = <0 0>; /* To be filled by loader */
 			clocks = <&clk_pcluster>;
 			operating-points-v2 = <&pcluster_opp>;
+			capacity-dmips-mhz = <1024>;
 		};
 	};
 
