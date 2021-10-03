@@ -40,15 +40,6 @@
 				core0 {
 					cpu = <&cpu_p0>;
 				};
-				core1 {
-					cpu = <&cpu_p1>;
-				};
-				core2 {
-					cpu = <&cpu_p2>;
-				};
-				core3 {
-					cpu = <&cpu_p3>;
-				};
 			};
 		};
 
@@ -100,39 +91,6 @@
 			compatible = "apple,firestorm";
 			device_type = "cpu";
 			reg = <0x0 0x10100>;
-			enable-method = "spin-table";
-			cpu-release-addr = <0 0>; /* To be filled by loader */
-			clocks = <&clk_pcluster>;
-			operating-points-v2 = <&pcluster_opp>;
-			capacity-dmips-mhz = <1024>;
-		};
-
-		cpu_p1: cpu@10101 {
-			compatible = "apple,firestorm";
-			device_type = "cpu";
-			reg = <0x0 0x10101>;
-			enable-method = "spin-table";
-			cpu-release-addr = <0 0>; /* To be filled by loader */
-			clocks = <&clk_pcluster>;
-			operating-points-v2 = <&pcluster_opp>;
-			capacity-dmips-mhz = <1024>;
-		};
-
-		cpu_p2: cpu@10102 {
-			compatible = "apple,firestorm";
-			device_type = "cpu";
-			reg = <0x0 0x10102>;
-			enable-method = "spin-table";
-			cpu-release-addr = <0 0>; /* To be filled by loader */
-			clocks = <&clk_pcluster>;
-			operating-points-v2 = <&pcluster_opp>;
-			capacity-dmips-mhz = <1024>;
-		};
-
-		cpu_p3: cpu@10103 {
-			compatible = "apple,firestorm";
-			device_type = "cpu";
-			reg = <0x0 0x10103>;
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>; /* To be filled by loader */
 			clocks = <&clk_pcluster>;
